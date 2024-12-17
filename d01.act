@@ -1,0 +1,55 @@
+#!/usr/bin/env runacton
+import file
+import re
+
+
+def build_coords(d: str):
+    x  = []
+    y = []
+    for line in d.split("\n"):
+        coords = line.split("  ")
+        #        print(re.split(r"\s*", line))
+        x.append(int(coords[0]))
+        y.append(int(coords[1]))
+    return sorted(x), sorted(y)
+
+
+def part1(xy):
+    sum = 0
+    for x, y in zip(xy.0, xy.1):
+        sum += abs(x - y)
+    return sum
+
+
+def count_occurences(needle: int, haystack: list[int], start: int):
+    """Count the number of times needle appears in sorted haystack"""
+    next = start
+    count = 0
+    try:
+        while True:
+            next = haystack.index(needle, next)
+            count += 1
+            next += 1
+    except KeyError:
+        return count, next
+    return count, next
+
+def part2(xy):
+    """Compute total similarity of all points to all other points"""
+    sum = 0
+    next = 0
+    for x in xy.0:
+        c, next = count_occurences(x, xy.1,  next)
+        sum += c * x
+    return sum
+
+
+actor main(env):
+    # Get a reference to capability to read a file, by refining from WorldCap
+    f_cap = file.ReadFileCap(file.FileCap(env.cap))
+    f = file.ReadFile(f_cap, 'input/d01.txt')
+    data = f.read()
+    coords = build_coords(data.decode())
+    print(part1(coords))
+    print(part2(coords))
+    env.exit(0)
