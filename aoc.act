@@ -1,15 +1,14 @@
 import file
 
 
-def bloopity_bloop(d: str, x):
-    bloops = []
+def read_lines(d: str, transform):
+    lines = []
     for line in d.splitlines():
         #print(line)
-        bloop = x(line)
-        bloops.append(bloop)
-    return bloops
+        lines.append(transform(line))
+    return lines
 
 
-def read_file(read_file_cap, filename, x):
+def read_file(read_file_cap, filename, transform):
     f = file.ReadFile(read_file_cap, filename)
-    return bloopity_bloop(f.read().decode(), x)
+    return read_lines(f.read().decode(), transform)

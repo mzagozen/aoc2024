@@ -1,0 +1,29 @@
+#!/usr/bin/env runacton
+import aoc
+import file
+import re
+
+
+def gen_mul(d: str):
+    muls = []
+    ms = re.matches(r"mul\((\d+),(\d+)\)", d)
+    for m in ms:
+        # muls.append((int(m.group[1]), int(m.group[2])))
+        a = m.group[1]
+        b = m.group[2]
+        if a is not None and b is not None:
+            muls.append((int(a), int(b)))
+    return muls
+
+
+def part1(data):
+    def mul(ab):
+        return ab.0 * ab.1
+    return sum(map(mul, data))
+
+
+actor main(env):
+    f_cap = file.ReadFileCap(file.FileCap(env.cap))
+    data = aoc.read_file(f_cap, 'input/d03.txt', gen_mul)
+    print(part1(data))
+    env.exit(0)
