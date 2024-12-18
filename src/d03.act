@@ -1,10 +1,9 @@
-#!/usr/bin/env runacton
 import aoc
 import file
 import re
 
 
-def gen_mul(d: str) -> list[(int, int)]:
+def gen_mul(d: str):
     muls = []
     ms = re.matches(r"mul\((\d+),(\d+)\)", d)
     for m in ms:
@@ -16,14 +15,18 @@ def gen_mul(d: str) -> list[(int, int)]:
     return muls
 
 
-def part1(data: list[(int, int)]):
-    def mul(ab):
-        return ab.0 * ab.1
-    return sum(map(mul, data))
+def mul(ab):
+    return ab.0 * ab.1
+
+
+def part1(data):
+    return sum(map(mul, data), start=0)
 
 
 actor main(env):
     f_cap = file.ReadFileCap(file.FileCap(env.cap))
-    data = aoc.read_file(f_cap, 'input/d03.txt', gen_mul)
+    input = aoc.read_file(f_cap, 'input/d03.txt')
+    data = gen_mul(input)
+    print(data)
     print(part1(data))
     env.exit(0)

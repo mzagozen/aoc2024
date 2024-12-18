@@ -1,0 +1,7 @@
+import file
+
+
+def read_file(read_file_cap, filename):
+    f = file.ReadFile(read_file_cap, filename)
+    lines = f.read().decode()
+    return lines

@@ -1,4 +1,4 @@
 input
-*
-!*.act
-!.gitignore
+out
+.build
+.acton.lock
