@@ -3,30 +3,40 @@ import file
 import re
 
 
-def gen_mul(d: str):
-    muls = []
-    ms = re.matches(r"mul\((\d+),(\d+)\)", d)
-    for m in ms:
-        # muls.append((int(m.group[1]), int(m.group[2])))
-        a = m.group[1]
-        b = m.group[2]
-        if a is not None and b is not None:
-            muls.append((int(a), int(b)))
-    return muls
-
-
-def mul(ab):
-    return ab.0 * ab.1
-
+def mul_maybe_str(m):
+    a = m.group[1]
+    b = m.group[2]
+    if a is not None and b is not None:
+        return int(a) * int(b)
+    return 0
 
 def part1(data):
-    return sum(map(mul, data), start=0)
+    sum = 0
+    ms = re.matches(r"mul\((\d+),(\d+)\)", data)
+    for m in ms:
+        sum += mul_maybe_str(m)
+    return sum
+
+
+def part2(data):
+    sum = 0
+    do = True
+    ms = re.matches(r"mul\((\d+),(\d+)\)|do\(\)|don't\(\)", data)
+    for m in ms:
+        print(m.group)
+        x = m.group[0]
+        if x == "do()":
+            do = True
+        elif x == "don't()":
+            do = False
+        elif do:
+            sum += mul_maybe_str(m)
+    return sum
 
 
 actor main(env):
     f_cap = file.ReadFileCap(file.FileCap(env.cap))
-    input = aoc.read_file(f_cap, 'input/d03.txt')
-    data = gen_mul(input)
-    print(data)
+    data = aoc.read_file(f_cap, 'input/d03.txt')
     print(part1(data))
+    print(part2(data))
     env.exit(0)
