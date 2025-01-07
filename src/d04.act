@@ -1,0 +1,29 @@
+import aoc
+import file
+
+
+def complex_grid(data: list[str]):
+    g = dict()
+    for x, r in enumerate(data):
+        print(x, r)
+        for y, c in enumerate(r):
+            print(x, y, c)
+            # k = (x=x, y=y)
+            # g[k] = c
+    return g
+
+
+def part1(data):
+    count = 0
+    return count
+
+
+def part2(data):
+    return 0
+
+
+actor main(env):
+    f_cap = file.ReadFileCap(file.FileCap(env.cap))
+    data = aoc.read_file(f_cap, 'input/d04.txt').splitlines()
+    grid = complex_grid(data)
+    env.exit(0)
