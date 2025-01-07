@@ -2,83 +2,88 @@ import aoc
 import file
 import testing
 
+
 class Page(object):
     number: str
-    # Keep a reference to the parent book so we can access the (global) rules for sorting
-    book: Book
+    predecessors: set[str]
 
-    def __init__(self, number, book):
+    def __init__(self, number, rules):
         self.number = number
-        self.book = book
+        self.predecessors = rules.get_def(number, set())
 
-    def __repr__(self):
-        return self.number
-
-# Make Page comparable so we can sort them
-extension Page(Ord):
-    def __eq__(self, other):
-        return self.number == other.number
-
-    def __lt__(self, other):
-        # A page is "less than the other" if it is listed as a prerequisite of the other page
-        if self.number in self.book.rules:
-            return other.number in self.book.rules[self.number]
-        return False
 
 class Book(object):
-    rules: dict[str, set[str]]
     pages: list[Page]
+    fixes: list[str]
 
-    def __init__(self, rules):
-        self.rules = rules
+    def __init__(self):
         self.pages = []
+        self.fixes = []
+
+    def insert_page(self, page):
+        """Insert a page into the book respecting the rules for page order.
+
+        If the page to insert is not listed as a predecessor of any other page,
+        it is appended to the end of the book. If it is a predecessor of an
+        existing page, it is inserted before that page. We presume the rules are acyclic :)
+        """
+        for idx, p in enumerate(self.pages):
+            if page.number in p.predecessors:
+                # The page must be inserted before p
+                self.pages.insert(idx, page)
+                self.fixes.append("%s before %s" % (page.number, p.number))
+                return
+        self.pages.append(page)
+
 
 def parse(data):
-    # The data is a list of rules like "A|B" where A is a prerequisite of B.
-    # Each rule appears on a new line.
+    # The data is a list of rules like "A|B" where A is a predecessor of B. In
+    # other words, A must appear before B. Each rule appears on a new line.
     # After the rules, there is a blank line, followed by a list of books. Each
     # book is a list of pages separated by commas.
     rules = {}
     books = []
     in_book = False
-    for p in data:
-        if p == "":
+    for line in data:
+        if line == "":
             in_book = True
             continue
         if in_book:
-            b = Book(rules)
-            b.rules =  rules
-            for page in p.split(","):
-                b.pages.append(Page(page, b))
+            b = Book()
+            for page in line.split(","):
+                p = Page(page, rules)
+                b.insert_page(p)
+            if b.fixes:
+                fixes = ", ".join(b.fixes)
+                print("✗ Book %s is out of order (%s)" % (line, fixes))
+            else:
+                print("✓ Book %s is in order" % line)
             books.append(b)
         else:
-            rule = p.split("|")
-            if rule[0] not in rules:
-                rules[rule[0]] = set()
-            rules[rule[0]].add(rule[1])
+            rule = line.split("|")
+            # We invert the ruleset to instead store the predecessors of a page
+            if rule[1] not in rules:
+                rules[rule[1]] = set()
+            rules[rule[1]].add(rule[0])
 
     return rules, books
 
 
-def part1(books):
-    # If the pages are sorted, they are in the correct order
+def mid_count(books):
     count = 0
     for book in books:
-        if book.pages == sorted(book.pages):
-            mid = len(book.pages) // 2
-            count += int(book.pages[mid].number)
+        mid = len(book.pages) // 2
+        count += int(book.pages[mid].number)
     return count
+
+
+def part1(books):
+    return mid_count(filter(lambda b: not b.fixes, books))
 
 
 def part2(books):
-    count = 0
-    for book in books:
-        s = sorted(book.pages)
-        if book.pages != s:
-            mid = len(s) // 2
-            count += int(s[mid].number)
-    return count
-        
+    return mid_count(filter(lambda b: b.fixes, books))
+
 
 sample_data = """47|53
 97|13
@@ -122,6 +127,6 @@ actor main(env):
     data = aoc.read_file(f_cap, 'input/d05.txt').splitlines()
     rules, books = parse(data)
     
-    print(part1(books))
-    print(part2(books))
+    print("Part 1: %i" % part1(books))
+    print("Part 2: %i" % part2(books))
     env.exit(0)
