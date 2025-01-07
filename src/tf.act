@@ -1,18 +1,7 @@
-#!/usr/bin/env runacton
-
-
-def bloopity_bloop(xy: (list[int], list[int])):
-    for x in xy.0:
-        # accesing the first element of the tuple breaks things?!
-        print(xy.0)
-    return 42
-
-def zippitiy_zip(xy):
-    for x, y in zip(xy.0, xy.1):
-        print(x, y)
+import math
 
 actor main(env):
-    coords = ([0, 1], [0, 1])
-    zippitiy_zip(coords)
-    print(bloopity_bloop(coords))   
+    c = math.sqrt(-1)
+    print(complex(0.0))
+    print(c)
     env.exit(0)
