@@ -1,0 +1,127 @@
+import aoc
+import file
+import testing
+
+class Page(object):
+    number: str
+    # Keep a reference to the parent book so we can access the (global) rules for sorting
+    book: Book
+
+    def __init__(self, number, book):
+        self.number = number
+        self.book = book
+
+    def __repr__(self):
+        return self.number
+
+# Make Page comparable so we can sort them
+extension Page(Ord):
+    def __eq__(self, other):
+        return self.number == other.number
+
+    def __lt__(self, other):
+        # A page is "less than the other" if it is listed as a prerequisite of the other page
+        if self.number in self.book.rules:
+            return other.number in self.book.rules[self.number]
+        return False
+
+class Book(object):
+    rules: dict[str, set[str]]
+    pages: list[Page]
+
+    def __init__(self, rules):
+        self.rules = rules
+        self.pages = []
+
+def parse(data):
+    # The data is a list of rules like "A|B" where A is a prerequisite of B.
+    # Each rule appears on a new line.
+    # After the rules, there is a blank line, followed by a list of books. Each
+    # book is a list of pages separated by commas.
+    rules = {}
+    books = []
+    in_book = False
+    for p in data:
+        if p == "":
+            in_book = True
+            continue
+        if in_book:
+            b = Book(rules)
+            b.rules =  rules
+            for page in p.split(","):
+                b.pages.append(Page(page, b))
+            books.append(b)
+        else:
+            rule = p.split("|")
+            if rule[0] not in rules:
+                rules[rule[0]] = set()
+            rules[rule[0]].add(rule[1])
+
+    return rules, books
+
+
+def part1(books):
+    # If the pages are sorted, they are in the correct order
+    count = 0
+    for book in books:
+        if book.pages == sorted(book.pages):
+            mid = len(book.pages) // 2
+            count += int(book.pages[mid].number)
+    return count
+
+
+def part2(books):
+    count = 0
+    for book in books:
+        s = sorted(book.pages)
+        if book.pages != s:
+            mid = len(s) // 2
+            count += int(s[mid].number)
+    return count
+        
+
+sample_data = """47|53
+97|13
+97|61
+97|47
+75|29
+61|13
+75|53
+29|13
+97|29
+53|29
+61|53
+97|53
+61|29
+47|13
+75|47
+97|75
+47|61
+75|61
+47|29
+75|13
+53|13
+
+75,47,61,53,29
+97,61,53,29,13
+75,29,13
+75,97,47,61,53
+61,13,29
+97,13,75,29,47"""
+
+def _test_part1():
+    rules, books = parse(sample_data.splitlines())
+    testing.assertEqual(part1(books), 143)
+
+def _test_part2():
+    rules, books = parse(sample_data.splitlines())
+    testing.assertEqual(part2(books), 123)
+
+actor main(env):
+    f_cap = file.ReadFileCap(file.FileCap(env.cap))
+    data = aoc.read_file(f_cap, 'input/d05.txt').splitlines()
+    rules, books = parse(data)
+    
+    print(part1(books))
+    print(part2(books))
+    env.exit(0)
