@@ -4,8 +4,8 @@ import testing
 
 
 class Page(object):
-    number: str
-    predecessors: set[str]
+    number: u64
+    predecessors: set[u64]
 
     def __init__(self, number, rules):
         self.number = number
@@ -31,7 +31,7 @@ class Book(object):
             if page.number in p.predecessors:
                 # The page must be inserted before p
                 self.pages.insert(idx, page)
-                self.fixes.append("%s before %s" % (page.number, p.number))
+                self.fixes.append("%d before %d" % (int(page.number), int(p.number)))
                 return
         self.pages.append(page)
 
@@ -51,7 +51,7 @@ def parse(data):
         if in_book:
             b = Book()
             for page in line.split(","):
-                p = Page(page, rules)
+                p = Page(u64(page), rules)
                 b.insert_page(p)
             if b.fixes:
                 fixes = ", ".join(b.fixes)
@@ -62,9 +62,11 @@ def parse(data):
         else:
             rule = line.split("|")
             # We invert the ruleset to instead store the predecessors of a page
-            if rule[1] not in rules:
-                rules[rule[1]] = set()
-            rules[rule[1]].add(rule[0])
+            a = u64(rule[0])
+            b = u64(rule[1])
+            if b not in rules:
+                rules[b] = set()
+            rules[b].add(a)
 
     return rules, books
 

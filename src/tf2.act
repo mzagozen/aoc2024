@@ -9,3 +9,8 @@ def _test_hash():
     l = [t]
     d = {"a": t}
     #dt = {t: "A"}
+
+def _test_format_unboxed():
+    p = u64(4)
+    #s = "p = %d" % p
+    s = "p = %d" % int(4)
