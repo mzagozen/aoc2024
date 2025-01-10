@@ -1,29 +1,87 @@
 import aoc
 import file
+import testing
 
 
-def complex_grid(data: list[str]):
-    g = dict()
+def complex_grid(data: list[str]) -> dict[complex, str]:
+    g = {}
     for x, r in enumerate(data):
-        print(x, r)
-        for y, c in enumerate(r):
-            print(x, y, c)
-            # k = (x=x, y=y)
-            # g[k] = c
+        for y, c in enumerate(list(r)):
+            g[complex.from_real_imag(y, x)] = c
     return g
 
-
 def part1(data):
+    # create a set of all 8 directions
+    dirs = set()
+    for i in [-1, 0, 1]:
+        for j in [-1, 0, 1]:
+            if i == 0 and j == 0:
+                continue
+            dirs.add(complex.from_real_imag(i, j))
+    # create a list of the 4 positions to collect word once, to avoid too many allocations
+    word_pos = list(map(lambda i: complex.from_real_imag(i, 0), range(4)))
     count = 0
+    for z in data.keys():
+        for d in dirs:
+            word = []
+            #word = list(map(lambda iz: data.get(z + d * iz), word_pos))
+            for iz in word_pos:
+                try:
+                    word.append(data[z + d * iz])
+                except KeyError:
+                    break
+            if word == ['X', 'M', 'A', 'S']:
+                count += 1
     return count
 
-
 def part2(data):
-    return 0
+    corners = set()
+    for i in [-1, 1]:
+        for j in [-1, 1]:
+            corners.add(complex.from_real_imag(i, j))
+    top_left = complex.from_real_imag(-1, 1)
+    bottom_right = complex.from_real_imag(1, -1)
+    count = 0
+    for z in data.keys():
+        if data[z] != 'A':
+            continue
+        word = list(map(lambda d: data.get(z + d), corners))
 
+        # there must be two M's and two S's
+        m = len(list(filter(lambda x: x == 'M', word))) == 2
+        s = len(list(filter(lambda x: x == 'S', word))) == 2
+        # and also diagonal corners must be a different letter:
+        # M S       M M       M S
+        #  A         A         A
+        # S M       S S       M S
+        #  ^invalid  ^valid    ^valid
+        if m and s and data[z + top_left] != data[z + bottom_right]:
+            count += 1
+    return count
+
+sample_data = """MMMSXXMASM
+MSAMXMSMSA
+AMXSXMAAMM
+MSAMASMSMX
+XMASAMXAMM
+XXAMMXXAMA
+SMSMSASXSS
+SAXAMASAAA
+MAMMMXMMMM
+MXMXAXMASX"""
+
+def _test_part1():
+    grid = complex_grid(sample_data.splitlines())
+    testing.assertEqual(part1(grid), 18)
+
+def _test_part2():
+    grid = complex_grid(sample_data.splitlines())
+    testing.assertEqual(part2(grid), 9)
 
 actor main(env):
     f_cap = file.ReadFileCap(file.FileCap(env.cap))
     data = aoc.read_file(f_cap, 'input/d04.txt').splitlines()
     grid = complex_grid(data)
+    print("Part 1: ", part1(grid))
+    print("Part 2: ", part2(grid))
     env.exit(0)
