@@ -1,0 +1,85 @@
+import aoc
+import file
+import testing
+
+def complex_grid(data: list[str]) -> (grid: dict[complex, str], start: complex, x: int, y: int):
+    g = {}
+    start = complex.from_real_imag(0, 0)
+    for xi, r in enumerate(data):
+        for yi, c in enumerate(list(r)):
+            g[complex.from_real_imag(yi, xi)] = c
+            if c == '^':
+                start = complex.from_real_imag(yi, xi)
+    return (grid=g, start=start, x=len(data[0]), y=len(data))
+
+STOP_WORLD = 1
+STOP_LOOP = 2
+
+def walk(grid: (grid: dict[complex, str], start: complex, x: int, y: int)):
+    visited = {}
+    # start facing north (up)
+    dir = complex.from_real_imag(0, -1)
+    pos = grid.start
+    reason = None
+    while True:
+        lookahead = grid.grid.get(pos + dir)
+        if lookahead is None:
+            return (reason=STOP_WORLD, visited=len(visited))
+        if lookahead == '#':
+            # turn right
+            dir *= complex.from_real_imag(0, 1)
+            continue
+        if pos + dir in visited and visited[pos + dir] == dir:
+            return (reason=STOP_LOOP, visited=len(visited))
+        # move forward
+        pos += dir
+        visited[pos] = dir
+    raise Exception("unreachable")
+
+def part1(grid: (grid: dict[complex, str], start: complex, x: int, y: int)):
+    wr = walk(grid)
+    return wr.visited
+
+def part2(grid: (grid: dict[complex, str], start: complex, x: int, y: int)):
+    count = 0
+    for x in range(grid.x):
+        for y in range(grid.y):
+            z = complex.from_real_imag(x, y)
+            print(z)
+            if grid.grid[z] == '^' or grid.grid[z] == '#':
+                continue
+            grid.grid[z] = '#'
+            wr = walk(grid)
+            if wr.reason == STOP_LOOP:
+                count += 1
+            grid.grid[z] = '.'
+    return count
+
+sample_data = """....#.....
+.........#
+..........
+..#.......
+.......#..
+..........
+.#..^.....
+........#.
+#.........
+......#..."""
+
+def _test_part1():
+    grid = complex_grid(sample_data.splitlines())
+    testing.assertEqual(part1(grid), 41)
+
+def _test_part2():
+    grid = complex_grid(sample_data.splitlines())
+    testing.assertEqual(part2(grid), 6)
+
+actor main(env):
+    f_cap = file.ReadFileCap(file.FileCap(env.cap))
+    data = aoc.read_file(f_cap, 'input/d06.txt').splitlines()
+    # data = sample_data.splitlines()
+    grid = complex_grid(data)
+    
+    print("Part 1: %i" % part1(grid))
+    print("Part 2: %i" % part2(grid))
+    env.exit(0)
