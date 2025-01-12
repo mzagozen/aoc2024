@@ -2,7 +2,7 @@ import aoc
 import file
 import testing
 
-def complex_grid(data: list[str]) -> (grid: dict[complex, str], start: complex, x: int, y: int):
+def complex_grid(data: list[str]) -> (grid: dict[complex, str], start: complex):
     g = {}
     start = complex.from_real_imag(0, 0)
     for xi, r in enumerate(data):
@@ -10,12 +10,12 @@ def complex_grid(data: list[str]) -> (grid: dict[complex, str], start: complex, 
             g[complex.from_real_imag(yi, xi)] = c
             if c == '^':
                 start = complex.from_real_imag(yi, xi)
-    return (grid=g, start=start, x=len(data[0]), y=len(data))
+    return (grid=g, start=start)
 
 STOP_WORLD = 1
 STOP_LOOP = 2
 
-def walk(grid: (grid: dict[complex, str], start: complex, x: int, y: int)):
+def walk(grid: (grid: dict[complex, str], start: complex)):
     visited = {}
     # start facing north (up)
     dir = complex.from_real_imag(0, -1)
@@ -24,35 +24,38 @@ def walk(grid: (grid: dict[complex, str], start: complex, x: int, y: int)):
     while True:
         lookahead = grid.grid.get(pos + dir)
         if lookahead is None:
-            return (reason=STOP_WORLD, visited=len(visited))
+            return (reason=STOP_WORLD, visited=visited)
         if lookahead == '#':
             # turn right
             dir *= complex.from_real_imag(0, 1)
             continue
         if pos + dir in visited and visited[pos + dir] == dir:
-            return (reason=STOP_LOOP, visited=len(visited))
+            return (reason=STOP_LOOP, visited=visited)
         # move forward
         pos += dir
         visited[pos] = dir
     raise Exception("unreachable")
 
-def part1(grid: (grid: dict[complex, str], start: complex, x: int, y: int)):
+def part1(grid: (grid: dict[complex, str], start: complex)):
     wr = walk(grid)
-    return wr.visited
+    return len(wr.visited)
 
-def part2(grid: (grid: dict[complex, str], start: complex, x: int, y: int)):
+def part2(grid: (grid: dict[complex, str], start: complex)):
+    # Only consider placing obstacles on visited positions. This reduces the
+    # search space enough that brute forcing in a single thread is tolerable.
+    # Paths for improvement:
+    # - parallelize the search, using actors!
+    # - optimize loop detection by setting the start position just before the
+    #   obstacle, like if the guard was just about to walk into it.
     count = 0
-    for x in range(grid.x):
-        for y in range(grid.y):
-            z = complex.from_real_imag(x, y)
-            print(z)
-            if grid.grid[z] == '^' or grid.grid[z] == '#':
-                continue
-            grid.grid[z] = '#'
-            wr = walk(grid)
-            if wr.reason == STOP_LOOP:
-                count += 1
-            grid.grid[z] = '.'
+    og = walk(grid)
+    og.visited.pop(grid.start)
+    for z in og.visited:
+        grid.grid[z] = '#'
+        wr = walk(grid)
+        if wr.reason == STOP_LOOP:
+            count += 1
+        grid.grid[z] = '.'
     return count
 
 sample_data = """....#.....
