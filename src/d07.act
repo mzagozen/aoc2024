@@ -1,0 +1,73 @@
+import aoc
+import file
+import testing
+
+
+def parse_data(data):
+    equations = []
+    for equation in data:
+        parts = equation.split(":")
+        eq = list(map(int, parts[1].strip().split(" ")))
+        equations.append((int(parts[0]), eq))
+    return equations
+
+def calculate(target, operands, pipe=False, result=0):
+    if result > target:
+        # print("result ", result, " > ", target)
+        return False
+    if len(operands) == 1:
+        # print("result ", result, operands[0])
+        if operands[0] + result == target or operands[0] * result == target:
+            return True
+        if pipe and int(str(result) + str(operands[0])) == target:
+            # print("joined ", result, operands[0])
+            return True
+        return False
+    if calculate(target, operands[1:], pipe, result + operands[0]):
+        return True
+    if calculate(target, operands[1:], pipe, result * operands[0]):
+        return True
+    if pipe and result > 0 and calculate(target, operands[1:], pipe, int(str(result) + str(operands[0]))):
+        return True
+    return False
+
+def part1(data):
+    sum = 0
+    for equation in data:
+        if calculate(equation.0, equation.1):
+            sum += equation.0
+    return sum
+
+
+def part2(data):
+    sum = 0
+    for equation in data:
+        if calculate(equation.0, equation.1, True):
+            sum += equation.0
+    return sum
+
+sample_data = """190: 10 19
+3267: 81 40 27
+83: 17 5
+156: 15 6
+7290: 6 8 6 15
+161011: 16 10 13
+192: 17 8 14
+21037: 9 7 18 13
+292: 11 6 16 20"""
+
+def _test_part1():
+    equations = parse_data(sample_data.splitlines())
+    testing.assertEqual(part1(equations), 3749)
+
+def _test_part2():
+    equations = parse_data(sample_data.splitlines())
+    testing.assertEqual(part2(equations), 11387)
+
+actor main(env):
+    f_cap = file.ReadFileCap(file.FileCap(env.cap))
+    data = aoc.read_file(f_cap, 'input/d07.txt').splitlines()
+    equations = parse_data(data)
+    print("Part 1: ", part1(equations))
+    print("Part 2: ", part2(equations))
+    env.exit(0)
